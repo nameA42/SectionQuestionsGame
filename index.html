@@ -432,11 +432,11 @@ const firebaseConfig = {
       <div style="color:var(--muted);font-size:0.85rem;">Answers are shuffled — can your group figure out who's who?</div>
     </div>
 
-    <button class="btn btn-reveal" id="revealBtn" onclick="toggleReveal()">
+    <div id="summaryContent"></div>
+
+    <button class="btn btn-reveal" id="revealBtn" onclick="toggleReveal()" style="margin-top:8px;">
       &#128065; Reveal Answers
     </button>
-
-    <div id="summaryContent"></div>
 
     <button class="btn btn-ghost" onclick="newRoom()"
       style="width:100%;margin-top:20px;justify-content:center;">
@@ -581,12 +581,30 @@ const firebaseConfig = {
     });
   }
 
+  // ── SEEDED RNG ────────────────────────────────────────────
+  // Converts the group code string into a numeric seed, then
+  // returns a deterministic random function so every device
+  // produces the same shuffle for the same group code.
+  function makeRng(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    }
+    let s = Math.abs(h) || 1;
+    return () => {
+      s = Math.imul(1664525, s) + 1013904223 | 0;
+      return (s >>> 0) / 4294967296;
+    };
+  }
+
   // ── DISTRIBUTE answers across recipients ─────────────────
   // Each person gets a pile of answers to read aloud.
   // Hard constraint: no one gets their own answers.
   // Soft constraint: no more than maxFromOne answers from any single source.
   function distributeAnswers(members) {
     const n = members.length;
+    const rng = makeRng(roomCode);
+
     // How many answers from one person is too many?
     // Scales up gracefully when there are few members or many questions.
     const maxFromOne = Math.max(2, Math.ceil(QUESTIONS.length / Math.max(n - 1, 1)));
@@ -600,9 +618,9 @@ const firebaseConfig = {
       });
     });
 
-    // Fisher-Yates shuffle
+    // Fisher-Yates shuffle using seeded rng
     for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rng() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
 
