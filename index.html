@@ -6,17 +6,17 @@
   <title>Group Questions Game</title>
   <style>
     :root {
-      --bg: #0f0f1a;
+      --bg:      #0f0f1a;
       --surface: #1a1a2e;
-      --card: #16213e;
-      --accent1: #e94560;
-      --accent2: #0f3460;
-      --accent3: #533483;
-      --accent4: #06b6d4;
-      --text: #f0f0f0;
-      --muted: #a0a0b0;
-      --border: #2a2a4a;
-      --radius: 12px;
+      --card:    #16213e;
+      --a1:      #e94560;
+      --a2:      #533483;
+      --a3:      #06b6d4;
+      --a4:      #f59e0b;
+      --text:    #f0f0f0;
+      --muted:   #8888aa;
+      --border:  #2a2a4a;
+      --r:       12px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,175 +29,90 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 24px 16px 60px;
     }
+
+    .container { width: 100%; max-width: 700px; }
+
+    .confetti-bar {
+      height: 4px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3), var(--a1));
+      background-size: 200% 100%;
+      animation: slide 2s linear infinite;
+      margin-bottom: 24px;
+    }
+    @keyframes slide { to { background-position: 200% 0; } }
 
     h1 {
       font-size: clamp(1.6rem, 5vw, 2.4rem);
       font-weight: 800;
       letter-spacing: -1px;
-      background: linear-gradient(135deg, var(--accent1), var(--accent4));
+      background: linear-gradient(135deg, var(--a1), var(--a3));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-align: center;
       margin-bottom: 6px;
     }
-
-    .subtitle {
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 0.95rem;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 860px;
-    }
-
-    /* ── STEP INDICATOR ── */
-    .steps {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      margin-bottom: 32px;
-    }
-
-    .step-dot {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      background: var(--border);
-      color: var(--muted);
-      transition: all 0.3s;
-      position: relative;
-      z-index: 1;
-    }
-
-    .step-dot.active {
-      background: linear-gradient(135deg, var(--accent1), var(--accent3));
-      color: #fff;
-      box-shadow: 0 0 16px rgba(233, 69, 96, 0.5);
-    }
-
-    .step-dot.done {
-      background: var(--accent4);
-      color: #fff;
-    }
-
-    .step-line {
-      flex: 1;
-      height: 3px;
-      background: var(--border);
-      max-width: 80px;
-      transition: background 0.3s;
-    }
-
-    .step-line.done { background: var(--accent4); }
+    .subtitle { color: var(--muted); text-align: center; margin-bottom: 32px; font-size: 0.9rem; }
 
     /* ── CARDS ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--r);
       padding: 28px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
-
     .card-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
     /* ── INPUTS ── */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
     label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 14px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--accent4);
-      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
-    }
-
-    input[type="text"]::placeholder { color: #505070; }
-
-    /* ── MEMBER GRID (step 1) ── */
-    .member-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
-    }
-
-    .member-input-wrap { display: flex; flex-direction: column; gap: 5px; }
-
-    /* ── QUESTION CARD ── */
-    .q-icon {
-      font-size: 1.4rem;
-      line-height: 1;
-    }
-
-    .answers-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-      margin-top: 4px;
-    }
-
-    .answer-field { display: flex; flex-direction: column; gap: 5px; }
-
-    .member-tag {
       font-size: 0.75rem;
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
+    input[type="text"] {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 11px 14px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+    }
+    input[type="text"]:focus {
+      border-color: var(--a3);
+      box-shadow: 0 0 0 3px rgba(6,182,212,.15);
+    }
+    input[type="text"]::placeholder { color: #404060; }
+
+    .code-input {
+      font-size: 1.5rem !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.15em !important;
+      text-align: center;
+      text-transform: uppercase;
+    }
 
     /* ── BUTTONS ── */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       padding: 12px 26px;
       border: none;
@@ -205,453 +120,559 @@
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+      font-family: inherit;
     }
-
-    .btn:hover { transform: translateY(-2px); }
-    .btn:active { transform: translateY(0); }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:active:not(:disabled) { transform: none; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent1), var(--accent3));
+      background: linear-gradient(135deg, var(--a1), var(--a2));
       color: #fff;
-      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.35);
+      box-shadow: 0 4px 15px rgba(233,69,96,.3);
+      width: 100%;
     }
-
-    .btn-secondary {
+    .btn-accent {
+      background: linear-gradient(135deg, var(--a3), #0891b2);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(6,182,212,.3);
+      width: 100%;
+    }
+    .btn-ghost {
       background: var(--card);
       color: var(--text);
       border: 1px solid var(--border);
     }
-
-    .btn-accent {
-      background: linear-gradient(135deg, var(--accent4), #0891b2);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+    .btn-reveal {
+      background: linear-gradient(135deg, var(--a4), #d97706);
+      color: #111;
+      box-shadow: 0 4px 15px rgba(245,158,11,.3);
+      width: 100%;
+      font-size: 1.05rem;
+      padding: 14px;
+      margin-bottom: 16px;
     }
 
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-      margin-top: 24px;
-      flex-wrap: wrap;
-    }
-
-    /* ── SECTION (hidden/shown) ── */
+    /* ── SECTIONS ── */
     .section { display: none; }
     .section.active { display: block; }
 
-    /* ── SUMMARY ── */
-    .summary-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
+    /* ── ERROR ── */
+    .error-msg {
+      display: none;
+      background: rgba(233,69,96,.15);
+      border: 1px solid rgba(233,69,96,.4);
+      border-radius: 8px;
+      color: var(--a1);
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      margin-top: 12px;
     }
 
-    .summary-table th {
+    /* ── WAITING SCREEN ── */
+    .waiting-big {
+      text-align: center;
+      padding: 20px 0 28px;
+    }
+    .waiting-count {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--a3), var(--a2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .waiting-label { color: var(--muted); margin-top: 6px; font-size: 0.9rem; }
+
+    .member-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       background: var(--card);
-      padding: 12px 14px;
-      text-align: left;
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      transition: border-color .3s;
     }
-
-    .summary-table th:first-child { border-radius: 8px 0 0 8px; }
-    .summary-table th:last-child  { border-radius: 0 8px 8px 0; }
-
-    .summary-table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
+    .member-row.submitted { border-color: rgba(6,182,212,.4); }
+    .status-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 900;
+      flex-shrink: 0;
     }
+    .status-icon.done { background: var(--a3); color: #fff; }
+    .status-icon.pending { background: var(--border); color: var(--muted); }
 
-    .summary-table tr:last-child td { border-bottom: none; }
-
-    .summary-table .q-cell {
+    /* ── RESULTS ── */
+    .q-block { margin-bottom: 20px; }
+    .q-header {
+      font-size: 0.95rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
-      white-space: nowrap;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
     }
-
-    .summary-table .a-cell {
-      color: var(--text);
-    }
-
-    .member-name-header {
-      color: var(--accent4);
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-
-    .empty-answer { color: var(--muted); font-style: italic; }
-
-    /* ── CONFETTI STRIP ── */
-    .confetti-bar {
-      height: 4px;
-      border-radius: 99px;
-      background: linear-gradient(90deg,
-        var(--accent1), var(--accent3), var(--accent4), var(--accent1));
-      background-size: 200% 100%;
-      animation: slide 2s linear infinite;
-      margin-bottom: 24px;
-    }
-
-    @keyframes slide {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
-    }
-
-    /* ── RESET LINK ── */
-    .reset-wrap {
-      text-align: center;
-      margin-top: 32px;
-    }
-
-    .reset-link {
-      color: var(--muted);
-      font-size: 0.85rem;
-      cursor: pointer;
-      text-decoration: underline;
-      background: none;
-      border: none;
-      font-family: inherit;
-    }
-
-    .reset-link:hover { color: var(--accent1); }
-
-    /* ── MEMBER COUNT CONTROL ── */
-    .count-control {
+    .answer-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
-      margin-bottom: 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
     }
-
-    .count-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+    .answer-item:last-child { border-bottom: none; }
+    .answer-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
       background: var(--card);
-      color: var(--text);
-      font-size: 1.2rem;
-      cursor: pointer;
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      flex-shrink: 0;
+      margin-top: 2px;
     }
-
-    .count-btn:hover { background: var(--border); }
-    .count-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    .count-display {
-      font-size: 1.1rem;
+    .answer-text { font-size: 0.95rem; line-height: 1.4; }
+    .answer-who {
+      font-size: 0.78rem;
       font-weight: 700;
-      min-width: 30px;
-      text-align: center;
+      color: var(--a3);
+      margin-top: 4px;
+      transition: opacity .4s;
+    }
+    .answer-who.hidden { opacity: 0; pointer-events: none; user-select: none; }
+
+    /* ── ROOM CODE PILL ── */
+    .room-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .room-pill strong { color: var(--a3); letter-spacing: 0.1em; }
+
+    /* ── SETUP WARNING ── */
+    .setup-banner {
+      background: rgba(245,158,11,.1);
+      border: 1px solid rgba(245,158,11,.4);
+      border-radius: var(--r);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e5c06a;
+    }
+    .setup-banner summary {
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--a4);
+      font-size: 0.9rem;
+    }
+    .setup-banner ol { margin: 10px 0 0 18px; }
+    .setup-banner code {
+      background: rgba(0,0,0,.4);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.82rem;
+      color: #fff;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
     }
 
-    .count-label { color: var(--muted); font-size: 0.9rem; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 520px) {
+    @media (max-width: 480px) {
       .card { padding: 18px; }
-      .btn-row { justify-content: stretch; }
-      .btn { flex: 1; justify-content: center; }
-      .summary-table { font-size: 0.8rem; }
-      .summary-table td, .summary-table th { padding: 8px 10px; }
     }
   </style>
 </head>
 <body>
 
+<!-- ─────────────────────────────────────────────────────────
+     FIREBASE SETUP
+     1. Go to https://console.firebase.google.com
+     2. Create a project → Add a Web app → copy the config below
+     3. In the console: Build → Realtime Database → Create database
+        (Start in TEST mode, or set rules to allow read/write)
+     4. Replace every "REPLACE_ME" value below with your config
+──────────────────────────────────────────────────────────── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  const FIREBASE_CONFIGURED = true; // ← set to true after filling in your config
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDQsQ-hogPAL9Tz5UJ4BCF1J7SAfZaYVho",
+  authDomain: "sectionicebreaker.firebaseapp.com",
+  projectId: "sectionicebreaker",
+  storageBucket: "sectionicebreaker.firebasestorage.app",
+  messagingSenderId: "977767053105",
+  appId: "1:977767053105:web:305cbe7a364423809d2210",
+  measurementId: "G-D0GH8CP2WH"
+};
+
+  let db = null;
+  if (FIREBASE_CONFIGURED) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+  }
+</script>
+
+<!-- ─────────────────────────────────────────────────────────
+     HTML
+──────────────────────────────────────────────────────────── -->
 <div class="container">
   <div class="confetti-bar"></div>
   <h1>Group Questions Game</h1>
-  <p class="subtitle">Fill out each question for every member of your group!</p>
+  <p class="subtitle">Each person answers on their own device — then guess who said what!</p>
 
-  <!-- STEP INDICATOR -->
-  <div class="steps" id="stepIndicator">
-    <div class="step-dot active" id="dot1">1</div>
-    <div class="step-line" id="line1"></div>
-    <div class="step-dot" id="dot2">2</div>
-    <div class="step-line" id="line2"></div>
-    <div class="step-dot" id="dot3">&#10003;</div>
-  </div>
+  <!-- ══ JOIN ══════════════════════════════════════════════ -->
+  <div class="section active" id="step_join">
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- STEP 1: TEAM SETUP                      -->
-  <!-- ════════════════════════════════════════ -->
-  <div class="section active" id="step1">
+    <div class="setup-banner" id="setupBanner">
+      <details>
+        <summary>&#9888; Firebase not configured yet — tap here for setup steps</summary>
+        <ol>
+          <li>Go to <strong>console.firebase.google.com</strong> and create a project.</li>
+          <li>Add a <strong>Web app</strong> and copy the config object.</li>
+          <li>In the console go to <strong>Build → Realtime Database → Create database</strong> (Test mode is fine for classroom use).</li>
+          <li>Open <code>index.html</code>, paste your config values where it says <code>REPLACE_ME</code>, and set <code>FIREBASE_CONFIGURED = true</code>.</li>
+          <li>Push to GitHub — done!</li>
+        </ol>
+        <br/>Recommended Database Rules (Realtime Database → Rules tab):
+        <br/><code>{ "rules": { ".read": true, ".write": true } }</code>
+      </details>
+    </div>
+
     <div class="card">
-      <div class="card-title">
-        <span class="badge" style="background:#e94560;color:#fff;">1</span>
-        Set Up Your Group
+      <div class="card-title">&#128101; Join Your Group</div>
+
+      <div class="field">
+        <label>Room Code</label>
+        <input type="text" id="codeInput" class="code-input"
+          placeholder="ABC" maxlength="10"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')document.getElementById('nameInput').focus()"
+        />
+        <span style="font-size:0.78rem;color:var(--muted);margin-top:2px;">
+          Your teacher will give you this code — everyone in your group uses the same one.
+        </span>
       </div>
 
-      <div class="count-control">
-        <button class="count-btn" id="removeBtn" onclick="removeMember()" disabled>−</button>
-        <span class="count-display" id="countDisplay">2</span>
-        <button class="count-btn" id="addBtn" onclick="addMember()">+</button>
-        <span class="count-label">group members</span>
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="nameInput" placeholder="First name or nickname"
+          maxlength="24"
+          onkeydown="if(event.key==='Enter')joinRoom()"
+        />
       </div>
 
-      <div class="member-grid" id="memberGrid">
-        <!-- dynamically filled -->
-      </div>
+      <div class="error-msg" id="joinError"></div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-primary" id="step1NextBtn" onclick="goToStep2()">
-        Next &rarr;
-      </button>
-    </div>
+    <button class="btn btn-primary" onclick="joinRoom()">Join Room &rarr;</button>
   </div>
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- STEP 2: QUESTIONS                        -->
-  <!-- ════════════════════════════════════════ -->
-  <div class="section" id="step2">
-    <!-- questions injected here -->
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep1()">&larr; Back</button>
-      <button class="btn btn-primary" onclick="goToStep3()">See Summary &rarr;</button>
-    </div>
+  <!-- ══ QUESTIONS ══════════════════════════════════════════ -->
+  <div class="section" id="step_questions">
+    <div class="room-pill" id="questionRoomPill">Room: <strong></strong></div>
+
+    <div id="questionsContainer"></div>
+
+    <div class="error-msg" id="answersError"></div>
+    <button class="btn btn-primary" onclick="submitAnswers()" style="margin-top:4px;">
+      Submit My Answers &#10003;
+    </button>
   </div>
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- STEP 3: SUMMARY                          -->
-  <!-- ════════════════════════════════════════ -->
-  <div class="section" id="step3">
+  <!-- ══ WAITING ════════════════════════════════════════════ -->
+  <div class="section" id="step_waiting">
+    <div class="room-pill" id="waitingRoomPill">Room: <strong></strong></div>
+
     <div class="card">
-      <div class="card-title">
-        <span class="badge" style="background:var(--accent4);color:#fff;">&#10003;</span>
-        Your Group's Answers
+      <div class="waiting-big">
+        <div class="waiting-count"><span id="submittedCount">0</span>/<span id="totalCount">?</span></div>
+        <div class="waiting-label">teammates submitted</div>
       </div>
-      <div id="summaryContent"></div>
+      <div class="member-list" id="memberList"></div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep2()">&larr; Edit Answers</button>
+    <button class="btn btn-accent" onclick="viewResults()" style="margin-bottom:10px;">
+      View Results Now &rarr;
+    </button>
+    <div style="text-align:center;font-size:0.8rem;color:var(--muted);">
+      (auto-advances when everyone submits)
+    </div>
+  </div>
+
+  <!-- ══ RESULTS ════════════════════════════════════════════ -->
+  <div class="section" id="step_results">
+    <div class="room-pill" id="resultsRoomPill">Room: <strong></strong></div>
+
+    <div class="card" style="text-align:center;padding:20px 28px;">
+      <div style="font-size:1.6rem;margin-bottom:6px;">&#129300;</div>
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:4px;">Guess Who Said What!</div>
+      <div style="color:var(--muted);font-size:0.85rem;">Answers are shuffled — can your group figure out who's who?</div>
     </div>
 
-    <div class="reset-wrap">
-      <button class="reset-link" onclick="resetAll()">Start over with a new group</button>
-    </div>
+    <button class="btn btn-reveal" id="revealBtn" onclick="toggleReveal()">
+      &#128065; Reveal Answers
+    </button>
+
+    <div id="summaryContent"></div>
+
+    <button class="btn btn-ghost" onclick="newRoom()"
+      style="width:100%;margin-top:20px;justify-content:center;">
+      Start Over
+    </button>
   </div>
 </div>
 
+<!-- ─────────────────────────────────────────────────────────
+     APP LOGIC
+──────────────────────────────────────────────────────────── -->
+<script src="questions.js"></script>
 <script>
-  // ── DATA ────────────────────────────────────────────────────────────────────
-  const QUESTIONS = [
-    { id: 'q1', icon: '🎮', label: 'Favorite Game' },
-    { id: 'q2', icon: '⭐', label: 'Favorite Game Character' },
-    { id: 'q3', icon: '🍕', label: 'Favorite Food' },
-    { id: 'q4', icon: '😤', label: 'Worst Minor Inconvenience Ever Experienced' },
-  ];
 
-  const COLORS = ['#e94560', '#06b6d4', '#a855f7', '#f59e0b', '#10b981', '#f97316'];
+  let roomCode   = '';
+  let myName     = '';
+  let memberId   = '';
+  let roomRef    = null;
+  let memberRef  = null;
+  let membersListener = null;
+  let revealed   = false;
+  let autoAdvanced = false;
 
-  let memberCount = 2;
-  const MAX_MEMBERS = 8;
-  const MIN_MEMBERS = 2;
-
-  // ── STEP 1 LOGIC ─────────────────────────────────────────────────────────────
-  function renderMemberGrid() {
-    const grid = document.getElementById('memberGrid');
-    grid.innerHTML = '';
-    for (let i = 0; i < memberCount; i++) {
-      const saved = getMemberName(i);
-      const color = COLORS[i % COLORS.length];
-      grid.innerHTML += `
-        <div class="member-input-wrap">
-          <label style="color:${color};">Member ${i + 1}</label>
-          <input type="text"
-            id="member_${i}"
-            placeholder="Name..."
-            value="${saved}"
-            oninput="cacheMemberName(${i})"
-            maxlength="20"
-          />
-        </div>`;
-    }
-    document.getElementById('removeBtn').disabled = memberCount <= MIN_MEMBERS;
-    document.getElementById('addBtn').disabled    = memberCount >= MAX_MEMBERS;
-    document.getElementById('countDisplay').textContent = memberCount;
-  }
-
-  function getMemberName(i) {
-    return sessionStorage.getItem(`member_${i}`) || '';
-  }
-
-  function cacheMemberName(i) {
-    const val = document.getElementById(`member_${i}`).value;
-    sessionStorage.setItem(`member_${i}`, val);
-  }
-
-  function addMember() {
-    if (memberCount < MAX_MEMBERS) { memberCount++; renderMemberGrid(); }
-  }
-
-  function removeMember() {
-    if (memberCount > MIN_MEMBERS) {
-      sessionStorage.removeItem(`member_${memberCount - 1}`);
-      memberCount--;
-      renderMemberGrid();
-    }
-  }
-
-  function getNames() {
-    return Array.from({ length: memberCount }, (_, i) => {
-      const el = document.getElementById(`member_${i}`);
-      const raw = el ? el.value.trim() : getMemberName(i).trim();
-      return raw || `Member ${i + 1}`;
-    });
-  }
-
-  function goToStep2() {
-    // cache any unsaved values
-    for (let i = 0; i < memberCount; i++) cacheMemberName(i);
-    buildStep2();
-    showStep(2);
-  }
-
-  // ── STEP 2 LOGIC ─────────────────────────────────────────────────────────────
-  function buildStep2() {
-    const names  = getNames();
-    const step2  = document.getElementById('step2');
-    // remove old question cards but keep the btn-row
-    step2.querySelectorAll('.q-card').forEach(el => el.remove());
-
-    const btnRow = step2.querySelector('.btn-row');
-
-    QUESTIONS.forEach((q, qi) => {
-      const color = COLORS[qi % COLORS.length];
-      const card  = document.createElement('div');
-      card.className = 'card q-card';
-
-      let answersHTML = '<div class="answers-row">';
-      names.forEach((name, mi) => {
-        const saved = sessionStorage.getItem(`${q.id}_m${mi}`) || '';
-        answersHTML += `
-          <div class="answer-field">
-            <span class="member-tag" style="color:${COLORS[mi % COLORS.length]}">${name}</span>
-            <input type="text"
-              id="${q.id}_m${mi}"
-              placeholder="Type answer..."
-              value="${escHtml(saved)}"
-              oninput="saveAnswer('${q.id}', ${mi})"
-              maxlength="80"
-            />
-          </div>`;
-      });
-      answersHTML += '</div>';
-
-      card.innerHTML = `
-        <div class="card-title">
-          <span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}55;">
-            <span class="q-icon">${q.icon}</span>
-          </span>
-          ${q.label}
+  // ── BUILD QUESTION CARDS ──────────────────────────────────
+  function buildQuestionCards() {
+    document.getElementById('questionsContainer').innerHTML = QUESTIONS.map((q, i) => `
+      <div class="card">
+        <div class="card-title"><span>${q.icon}</span> ${q.label}</div>
+        <div class="field">
+          <label>Your answer</label>
+          <input type="text" id="ans_q${i}" placeholder="Type your answer..."
+            maxlength="${q.maxlength || 80}" />
         </div>
-        ${answersHTML}`;
+      </div>`).join('');
+  }
 
-      step2.insertBefore(card, btnRow);
+  // ── CHECK FIREBASE SETUP ──────────────────────────────────
+  window.addEventListener('load', () => {
+    buildQuestionCards();
+    if (FIREBASE_CONFIGURED) {
+      document.getElementById('setupBanner').style.display = 'none';
+    }
+  });
+
+  // ── JOIN ──────────────────────────────────────────────────
+  async function joinRoom() {
+    if (!FIREBASE_CONFIGURED) {
+      showError('joinError', 'Firebase is not configured yet — see the setup steps above.');
+      return;
+    }
+
+    const code = document.getElementById('codeInput').value.trim().toUpperCase().replace(/\s/g, '');
+    const name = document.getElementById('nameInput').value.trim();
+
+    if (code.length < 2) {
+      showError('joinError', 'Enter a room code (at least 2 characters).');
+      return;
+    }
+    if (!name) {
+      showError('joinError', 'Enter your name.');
+      return;
+    }
+
+    roomCode  = code;
+    myName    = name;
+    memberId  = Math.random().toString(36).substr(2, 9);
+    roomRef   = db.ref(`rooms/${roomCode}`);
+    memberRef = db.ref(`rooms/${roomCode}/members/${memberId}`);
+
+    await memberRef.set({ name: myName, submitted: false, joinedAt: Date.now() });
+    memberRef.onDisconnect().remove();
+
+    setPillText(roomCode);
+    showStep('questions');
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────
+  async function submitAnswers() {
+    const answers = {};
+    let allFilled = true;
+
+    QUESTIONS.forEach((q, i) => {
+      const val = (document.getElementById(`ans_q${i}`) || {}).value?.trim() || '';
+      answers[`q${i}`] = val;
+      if (!val) allFilled = false;
+    });
+
+    if (!allFilled) {
+      showError('answersError', `Please fill in all ${QUESTIONS.length} answers!`);
+      return;
+    }
+
+    await memberRef.update({ answers, submitted: true });
+    showStep('waiting');
+    startWaiting();
+  }
+
+  // ── WAITING ───────────────────────────────────────────────
+  function startWaiting() {
+    if (membersListener) roomRef.child('members').off('value', membersListener);
+
+    membersListener = roomRef.child('members').on('value', snapshot => {
+      const members = snapshot.val() || {};
+      const all       = Object.values(members);
+      const submitted = all.filter(m => m.submitted);
+
+      document.getElementById('submittedCount').textContent = submitted.length;
+      document.getElementById('totalCount').textContent     = all.length;
+
+      const list = document.getElementById('memberList');
+      list.innerHTML = all
+        .sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0))
+        .map(m => `
+          <div class="member-row ${m.submitted ? 'submitted' : ''}">
+            <div class="status-icon ${m.submitted ? 'done' : 'pending'}">
+              ${m.submitted ? '✓' : '○'}
+            </div>
+            <span>${escHtml(m.name)}</span>
+          </div>`).join('');
+
+      // Auto-advance when all have submitted (and at least 2 people)
+      if (!autoAdvanced && all.length >= 2 && submitted.length === all.length) {
+        autoAdvanced = true;
+        viewResults();
+      }
     });
   }
 
-  function saveAnswer(qid, mi) {
-    const el  = document.getElementById(`${qid}_m${mi}`);
-    if (el) sessionStorage.setItem(`${qid}_m${mi}`, el.value);
-  }
+  // ── RESULTS ───────────────────────────────────────────────
+  function viewResults() {
+    if (membersListener) {
+      roomRef.child('members').off('value', membersListener);
+      membersListener = null;
+    }
 
-  function goToStep1() { showStep(1); }
-
-  // ── STEP 3 LOGIC ─────────────────────────────────────────────────────────────
-  function goToStep3() {
-    // save all answers
-    const names = getNames();
-    QUESTIONS.forEach(q => {
-      names.forEach((_, mi) => saveAnswer(q.id, mi));
+    roomRef.child('members').once('value', snapshot => {
+      const members = Object.values(snapshot.val() || {}).filter(m => m.submitted && m.answers);
+      buildSummary(members);
+      revealed = false;
+      document.getElementById('revealBtn').textContent = '👁 Reveal Answers';
+      showStep('results');
     });
-    buildSummary(names);
-    showStep(3);
   }
 
-  function buildSummary(names) {
+  function buildSummary(members) {
     const wrap = document.getElementById('summaryContent');
     wrap.innerHTML = '';
 
-    const table = document.createElement('table');
-    table.className = 'summary-table';
+    QUESTIONS.forEach((q, i) => {
+      const answers = members
+        .filter(m => m.answers[`q${i}`])
+        .map(m => ({ name: m.name, text: m.answers[`q${i}`] }));
 
-    // Header row
-    let header = '<thead><tr><th>Question</th>';
-    names.forEach((name, i) => {
-      header += `<th><span class="member-name-header" style="color:${COLORS[i % COLORS.length]}">${escHtml(name)}</span></th>`;
-    });
-    header += '</tr></thead>';
-    table.innerHTML = header;
+      // Fisher-Yates shuffle
+      for (let i = answers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [answers[i], answers[j]] = [answers[j], answers[i]];
+      }
 
-    const tbody = document.createElement('tbody');
-    QUESTIONS.forEach(q => {
-      const tr = document.createElement('tr');
-      let row = `<td><div class="q-cell"><span>${q.icon}</span>${q.label}</div></td>`;
-      names.forEach((_, mi) => {
-        const ans = (sessionStorage.getItem(`${q.id}_m${mi}`) || '').trim();
-        row += `<td class="a-cell">${ans ? escHtml(ans) : '<span class="empty-answer">—</span>'}</td>`;
-      });
-      tr.innerHTML = row;
-      tbody.appendChild(tr);
+      const block = document.createElement('div');
+      block.className = 'card q-block';
+      block.innerHTML = `
+        <div class="q-header">
+          <span>${q.icon}</span> ${q.label}
+        </div>
+        ${answers.map((a, i) => `
+          <div class="answer-item">
+            <div class="answer-num">${i + 1}</div>
+            <div>
+              <div class="answer-text">${escHtml(a.text)}</div>
+              <div class="answer-who hidden">— ${escHtml(a.name)}</div>
+            </div>
+          </div>`).join('')}`;
+      wrap.appendChild(block);
     });
-    table.appendChild(tbody);
-    wrap.appendChild(table);
   }
 
-  // ── NAVIGATION ───────────────────────────────────────────────────────────────
-  function showStep(n) {
-    [1, 2, 3].forEach(i => {
-      document.getElementById(`step${i}`).classList.toggle('active', i === n);
+  function toggleReveal() {
+    revealed = !revealed;
+    document.querySelectorAll('.answer-who').forEach(el => {
+      el.classList.toggle('hidden', !revealed);
     });
-    updateStepIndicator(n);
+    document.getElementById('revealBtn').textContent = revealed
+      ? '🙈 Hide Names'
+      : '👁 Reveal Answers';
+  }
+
+  // ── RESET ─────────────────────────────────────────────────
+  function newRoom() {
+    if (memberRef) memberRef.remove();
+    if (membersListener) {
+      roomRef.child('members').off('value', membersListener);
+      membersListener = null;
+    }
+    roomCode = myName = memberId = '';
+    roomRef = memberRef = null;
+    autoAdvanced = false;
+
+    document.getElementById('codeInput').value = '';
+    document.getElementById('nameInput').value = '';
+    QUESTIONS.forEach((_, i) => {
+      const el = document.getElementById(`ans_q${i}`);
+      if (el) el.value = '';
+    });
+    showStep('join');
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────
+  function showStep(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`step_${name}`).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function updateStepIndicator(current) {
-    [1, 2, 3].forEach(i => {
-      const dot  = document.getElementById(`dot${i}`);
-      dot.classList.toggle('active', i === current);
-      dot.classList.toggle('done',   i < current);
-    });
-    [1, 2].forEach(i => {
-      document.getElementById(`line${i}`).classList.toggle('done', i < current);
+  function setPillText(code) {
+    document.querySelectorAll('.room-pill strong').forEach(el => {
+      el.textContent = code;
     });
   }
 
-  // ── RESET ────────────────────────────────────────────────────────────────────
-  function resetAll() {
-    if (!confirm('Start over? All answers will be cleared.')) return;
-    sessionStorage.clear();
-    memberCount = 2;
-    renderMemberGrid();
-    showStep(1);
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
   }
 
-  // ── UTIL ─────────────────────────────────────────────────────────────────────
   function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-
-  // ── INIT ─────────────────────────────────────────────────────────────────────
-  renderMemberGrid();
 </script>
 </body>
 </html>
