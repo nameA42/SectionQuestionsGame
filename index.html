@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Questions Game</title>
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --card: #16213e;
+      --accent1: #e94560;
+      --accent2: #0f3460;
+      --accent3: #533483;
+      --accent4: #06b6d4;
+      --text: #f0f0f0;
+      --muted: #a0a0b0;
+      --border: #2a2a4a;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent4));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* ── STEP INDICATOR ── */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+
+    .step-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      background: var(--border);
+      color: var(--muted);
+      transition: all 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-dot.active {
+      background: linear-gradient(135deg, var(--accent1), var(--accent3));
+      color: #fff;
+      box-shadow: 0 0 16px rgba(233, 69, 96, 0.5);
+    }
+
+    .step-dot.done {
+      background: var(--accent4);
+      color: #fff;
+    }
+
+    .step-line {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      max-width: 80px;
+      transition: background 0.3s;
+    }
+
+    .step-line.done { background: var(--accent4); }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ── INPUTS ── */
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent4);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+    }
+
+    input[type="text"]::placeholder { color: #505070; }
+
+    /* ── MEMBER GRID (step 1) ── */
+    .member-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .member-input-wrap { display: flex; flex-direction: column; gap: 5px; }
+
+    /* ── QUESTION CARD ── */
+    .q-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .answers-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .answer-field { display: flex; flex-direction: column; gap: 5px; }
+
+    .member-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 26px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent1), var(--accent3));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent4), #0891b2);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+    }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* ── SECTION (hidden/shown) ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── SUMMARY ── */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .summary-table th {
+      background: var(--card);
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .summary-table th:first-child { border-radius: 8px 0 0 8px; }
+    .summary-table th:last-child  { border-radius: 0 8px 8px 0; }
+
+    .summary-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .summary-table tr:last-child td { border-bottom: none; }
+
+    .summary-table .q-cell {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .summary-table .a-cell {
+      color: var(--text);
+    }
+
+    .member-name-header {
+      color: var(--accent4);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .empty-answer { color: var(--muted); font-style: italic; }
+
+    /* ── CONFETTI STRIP ── */
+    .confetti-bar {
+      height: 4px;
+      border-radius: 99px;
+      background: linear-gradient(90deg,
+        var(--accent1), var(--accent3), var(--accent4), var(--accent1));
+      background-size: 200% 100%;
+      animation: slide 2s linear infinite;
+      margin-bottom: 24px;
+    }
+
+    @keyframes slide {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    /* ── RESET LINK ── */
+    .reset-wrap {
+      text-align: center;
+      margin-top: 32px;
+    }
+
+    .reset-link {
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .reset-link:hover { color: var(--accent1); }
+
+    /* ── MEMBER COUNT CONTROL ── */
+    .count-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .count-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .count-btn:hover { background: var(--border); }
+    .count-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .count-display {
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .count-label { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 520px) {
+      .card { padding: 18px; }
+      .btn-row { justify-content: stretch; }
+      .btn { flex: 1; justify-content: center; }
+      .summary-table { font-size: 0.8rem; }
+      .summary-table td, .summary-table th { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="confetti-bar"></div>
+  <h1>Group Questions Game</h1>
+  <p class="subtitle">Fill out each question for every member of your group!</p>
+
+  <!-- STEP INDICATOR -->
+  <div class="steps" id="stepIndicator">
+    <div class="step-dot active" id="dot1">1</div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-dot" id="dot2">2</div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-dot" id="dot3">&#10003;</div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- STEP 1: TEAM SETUP                      -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section active" id="step1">
+    <div class="card">
+      <div class="card-title">
+        <span class="badge" style="background:#e94560;color:#fff;">1</span>
+        Set Up Your Group
+      </div>
+
+      <div class="count-control">
+        <button class="count-btn" id="removeBtn" onclick="removeMember()" disabled>−</button>
+        <span class="count-display" id="countDisplay">2</span>
+        <button class="count-btn" id="addBtn" onclick="addMember()">+</button>
+        <span class="count-label">group members</span>
+      </div>
+
+      <div class="member-grid" id="memberGrid">
+        <!-- dynamically filled -->
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="step1NextBtn" onclick="goToStep2()">
+        Next &rarr;
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- STEP 2: QUESTIONS                        -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section" id="step2">
+    <!-- questions injected here -->
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep1()">&larr; Back</button>
+      <button class="btn btn-primary" onclick="goToStep3()">See Summary &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- STEP 3: SUMMARY                          -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section" id="step3">
+    <div class="card">
+      <div class="card-title">
+        <span class="badge" style="background:var(--accent4);color:#fff;">&#10003;</span>
+        Your Group's Answers
+      </div>
+      <div id="summaryContent"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep2()">&larr; Edit Answers</button>
+    </div>
+
+    <div class="reset-wrap">
+      <button class="reset-link" onclick="resetAll()">Start over with a new group</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── DATA ────────────────────────────────────────────────────────────────────
+  const QUESTIONS = [
+    { id: 'q1', icon: '🎮', label: 'Favorite Game' },
+    { id: 'q2', icon: '⭐', label: 'Favorite Game Character' },
+    { id: 'q3', icon: '🍕', label: 'Favorite Food' },
+    { id: 'q4', icon: '😤', label: 'Worst Minor Inconvenience Ever Experienced' },
+  ];
+
+  const COLORS = ['#e94560', '#06b6d4', '#a855f7', '#f59e0b', '#10b981', '#f97316'];
+
+  let memberCount = 2;
+  const MAX_MEMBERS = 8;
+  const MIN_MEMBERS = 2;
+
+  // ── STEP 1 LOGIC ─────────────────────────────────────────────────────────────
+  function renderMemberGrid() {
+    const grid = document.getElementById('memberGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < memberCount; i++) {
+      const saved = getMemberName(i);
+      const color = COLORS[i % COLORS.length];
+      grid.innerHTML += `
+        <div class="member-input-wrap">
+          <label style="color:${color};">Member ${i + 1}</label>
+          <input type="text"
+            id="member_${i}"
+            placeholder="Name..."
+            value="${saved}"
+            oninput="cacheMemberName(${i})"
+            maxlength="20"
+          />
+        </div>`;
+    }
+    document.getElementById('removeBtn').disabled = memberCount <= MIN_MEMBERS;
+    document.getElementById('addBtn').disabled    = memberCount >= MAX_MEMBERS;
+    document.getElementById('countDisplay').textContent = memberCount;
+  }
+
+  function getMemberName(i) {
+    return sessionStorage.getItem(`member_${i}`) || '';
+  }
+
+  function cacheMemberName(i) {
+    const val = document.getElementById(`member_${i}`).value;
+    sessionStorage.setItem(`member_${i}`, val);
+  }
+
+  function addMember() {
+    if (memberCount < MAX_MEMBERS) { memberCount++; renderMemberGrid(); }
+  }
+
+  function removeMember() {
+    if (memberCount > MIN_MEMBERS) {
+      sessionStorage.removeItem(`member_${memberCount - 1}`);
+      memberCount--;
+      renderMemberGrid();
+    }
+  }
+
+  function getNames() {
+    return Array.from({ length: memberCount }, (_, i) => {
+      const el = document.getElementById(`member_${i}`);
+      const raw = el ? el.value.trim() : getMemberName(i).trim();
+      return raw || `Member ${i + 1}`;
+    });
+  }
+
+  function goToStep2() {
+    // cache any unsaved values
+    for (let i = 0; i < memberCount; i++) cacheMemberName(i);
+    buildStep2();
+    showStep(2);
+  }
+
+  // ── STEP 2 LOGIC ─────────────────────────────────────────────────────────────
+  function buildStep2() {
+    const names  = getNames();
+    const step2  = document.getElementById('step2');
+    // remove old question cards but keep the btn-row
+    step2.querySelectorAll('.q-card').forEach(el => el.remove());
+
+    const btnRow = step2.querySelector('.btn-row');
+
+    QUESTIONS.forEach((q, qi) => {
+      const color = COLORS[qi % COLORS.length];
+      const card  = document.createElement('div');
+      card.className = 'card q-card';
+
+      let answersHTML = '<div class="answers-row">';
+      names.forEach((name, mi) => {
+        const saved = sessionStorage.getItem(`${q.id}_m${mi}`) || '';
+        answersHTML += `
+          <div class="answer-field">
+            <span class="member-tag" style="color:${COLORS[mi % COLORS.length]}">${name}</span>
+            <input type="text"
+              id="${q.id}_m${mi}"
+              placeholder="Type answer..."
+              value="${escHtml(saved)}"
+              oninput="saveAnswer('${q.id}', ${mi})"
+              maxlength="80"
+            />
+          </div>`;
+      });
+      answersHTML += '</div>';
+
+      card.innerHTML = `
+        <div class="card-title">
+          <span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}55;">
+            <span class="q-icon">${q.icon}</span>
+          </span>
+          ${q.label}
+        </div>
+        ${answersHTML}`;
+
+      step2.insertBefore(card, btnRow);
+    });
+  }
+
+  function saveAnswer(qid, mi) {
+    const el  = document.getElementById(`${qid}_m${mi}`);
+    if (el) sessionStorage.setItem(`${qid}_m${mi}`, el.value);
+  }
+
+  function goToStep1() { showStep(1); }
+
+  // ── STEP 3 LOGIC ─────────────────────────────────────────────────────────────
+  function goToStep3() {
+    // save all answers
+    const names = getNames();
+    QUESTIONS.forEach(q => {
+      names.forEach((_, mi) => saveAnswer(q.id, mi));
+    });
+    buildSummary(names);
+    showStep(3);
+  }
+
+  function buildSummary(names) {
+    const wrap = document.getElementById('summaryContent');
+    wrap.innerHTML = '';
+
+    const table = document.createElement('table');
+    table.className = 'summary-table';
+
+    // Header row
+    let header = '<thead><tr><th>Question</th>';
+    names.forEach((name, i) => {
+      header += `<th><span class="member-name-header" style="color:${COLORS[i % COLORS.length]}">${escHtml(name)}</span></th>`;
+    });
+    header += '</tr></thead>';
+    table.innerHTML = header;
+
+    const tbody = document.createElement('tbody');
+    QUESTIONS.forEach(q => {
+      const tr = document.createElement('tr');
+      let row = `<td><div class="q-cell"><span>${q.icon}</span>${q.label}</div></td>`;
+      names.forEach((_, mi) => {
+        const ans = (sessionStorage.getItem(`${q.id}_m${mi}`) || '').trim();
+        row += `<td class="a-cell">${ans ? escHtml(ans) : '<span class="empty-answer">—</span>'}</td>`;
+      });
+      tr.innerHTML = row;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+  }
+
+  // ── NAVIGATION ───────────────────────────────────────────────────────────────
+  function showStep(n) {
+    [1, 2, 3].forEach(i => {
+      document.getElementById(`step${i}`).classList.toggle('active', i === n);
+    });
+    updateStepIndicator(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateStepIndicator(current) {
+    [1, 2, 3].forEach(i => {
+      const dot  = document.getElementById(`dot${i}`);
+      dot.classList.toggle('active', i === current);
+      dot.classList.toggle('done',   i < current);
+    });
+    [1, 2].forEach(i => {
+      document.getElementById(`line${i}`).classList.toggle('done', i < current);
+    });
+  }
+
+  // ── RESET ────────────────────────────────────────────────────────────────────
+  function resetAll() {
+    if (!confirm('Start over? All answers will be cleared.')) return;
+    sessionStorage.clear();
+    memberCount = 2;
+    renderMemberGrid();
+    showStep(1);
+  }
+
+  // ── UTIL ─────────────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────────
+  renderMemberGrid();
+</script>
+</body>
+</html>
