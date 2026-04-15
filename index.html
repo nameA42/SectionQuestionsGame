@@ -368,14 +368,14 @@ const firebaseConfig = {
       <div class="card-title">&#128101; Join Your Group</div>
 
       <div class="field">
-        <label>Room Code</label>
+        <label>Group Code</label>
         <input type="text" id="codeInput" class="code-input"
           placeholder="ABC" maxlength="10"
           oninput="this.value=this.value.toUpperCase()"
           onkeydown="if(event.key==='Enter')document.getElementById('nameInput').focus()"
         />
         <span style="font-size:0.78rem;color:var(--muted);margin-top:2px;">
-          Your teacher will give you this code — everyone in your group uses the same one.
+          Pick any code with your group — everyone enters the same one.
         </span>
       </div>
 
@@ -390,12 +390,12 @@ const firebaseConfig = {
       <div class="error-msg" id="joinError"></div>
     </div>
 
-    <button class="btn btn-primary" onclick="joinRoom()">Join Room &rarr;</button>
+    <button class="btn btn-primary" onclick="joinRoom()">Join Group &rarr;</button>
   </div>
 
   <!-- ══ QUESTIONS ══════════════════════════════════════════ -->
   <div class="section" id="step_questions">
-    <div class="room-pill" id="questionRoomPill">Room: <strong></strong></div>
+    <div class="room-pill" id="questionRoomPill">Group: <strong></strong></div>
 
     <div id="questionsContainer"></div>
 
@@ -407,7 +407,7 @@ const firebaseConfig = {
 
   <!-- ══ WAITING ════════════════════════════════════════════ -->
   <div class="section" id="step_waiting">
-    <div class="room-pill" id="waitingRoomPill">Room: <strong></strong></div>
+    <div class="room-pill" id="waitingRoomPill">Group: <strong></strong></div>
 
     <div class="card">
       <div class="waiting-big">
@@ -427,7 +427,7 @@ const firebaseConfig = {
 
   <!-- ══ RESULTS ════════════════════════════════════════════ -->
   <div class="section" id="step_results">
-    <div class="room-pill" id="resultsRoomPill">Room: <strong></strong></div>
+    <div class="room-pill" id="resultsRoomPill">Group: <strong></strong></div>
 
     <div class="card" style="text-align:center;padding:20px 28px;">
       <div style="font-size:1.6rem;margin-bottom:6px;">&#129300;</div>
@@ -495,7 +495,7 @@ const firebaseConfig = {
     const name = document.getElementById('nameInput').value.trim();
 
     if (code.length < 2) {
-      showError('joinError', 'Enter a room code (at least 2 characters).');
+      showError('joinError', 'Enter a group code (at least 2 characters).');
       return;
     }
     if (!name) {
@@ -584,36 +584,87 @@ const firebaseConfig = {
     });
   }
 
+  // ── DISTRIBUTE answers across recipients ─────────────────
+  // Each person gets a pile of answers to read aloud.
+  // Hard constraint: no one gets their own answers.
+  // Soft constraint: no more than maxFromOne answers from any single source.
+  function distributeAnswers(members) {
+    const n = members.length;
+    // How many answers from one person is too many?
+    // Scales up gracefully when there are few members or many questions.
+    const maxFromOne = Math.max(2, Math.ceil(QUESTIONS.length / Math.max(n - 1, 1)));
+
+    // Build flat pool of all answers
+    const pool = [];
+    members.forEach((member, mi) => {
+      QUESTIONS.forEach((q, qi) => {
+        const text = member.answers && member.answers[`q${qi}`];
+        if (text) pool.push({ sourceMi: mi, sourceName: member.name, q, text });
+      });
+    });
+
+    // Fisher-Yates shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    const target = Math.floor(pool.length / n);
+    const remainder = pool.length % n;
+    const assignments = Array.from({ length: n }, () => []);
+    // sourceCount[recipient][source] tracks how many answers ri got from mi
+    const sourceCount = Array.from({ length: n }, () => Array(n).fill(0));
+
+    function tryAssign(answer, relaxed) {
+      const cap = (ri) => target + (ri < remainder ? 1 : 0);
+      let best = -1;
+      for (let ri = 0; ri < n; ri++) {
+        if (ri === answer.sourceMi) continue;                              // never own answers
+        if (!relaxed && assignments[ri].length >= cap(ri)) continue;      // at capacity
+        if (!relaxed && sourceCount[ri][answer.sourceMi] >= maxFromOne) continue; // too many from one source
+        if (best === -1 || assignments[ri].length < assignments[best].length) best = ri;
+      }
+      if (best === -1) return false;
+      assignments[best].push(answer);
+      sourceCount[best][answer.sourceMi]++;
+      return true;
+    }
+
+    const leftover = [];
+    for (const answer of pool) {
+      if (!tryAssign(answer, false)) leftover.push(answer);
+    }
+    // Relaxed pass — drop soft constraint for anything that couldn't be placed
+    for (const answer of leftover) tryAssign(answer, true);
+
+    return members.map((member, i) => ({ recipient: member, answers: assignments[i] }));
+  }
+
   function buildSummary(members) {
     const wrap = document.getElementById('summaryContent');
     wrap.innerHTML = '';
 
-    QUESTIONS.forEach((q, i) => {
-      const answers = members
-        .filter(m => m.answers[`q${i}`])
-        .map(m => ({ name: m.name, text: m.answers[`q${i}`] }));
+    const distribution = distributeAnswers(members);
 
-      // Fisher-Yates shuffle
-      for (let i = answers.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [answers[i], answers[j]] = [answers[j], answers[i]];
-      }
-
-      const block = document.createElement('div');
-      block.className = 'card q-block';
-      block.innerHTML = `
-        <div class="q-header">
-          <span>${q.icon}</span> ${q.label}
+    distribution.forEach(({ recipient, answers }) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-title">
+          <span>🎯</span> ${escHtml(recipient.name)}
         </div>
-        ${answers.map((a, i) => `
+        ${answers.length === 0
+          ? '<div style="color:var(--muted);font-size:0.9rem;">Nothing assigned — too few members.</div>'
+          : answers.map(a => `
           <div class="answer-item">
-            <div class="answer-num">${i + 1}</div>
+            <div class="answer-num">${a.q.icon}</div>
             <div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;">${a.q.label}</div>
               <div class="answer-text">${escHtml(a.text)}</div>
-              <div class="answer-who hidden">— ${escHtml(a.name)}</div>
+              <div class="answer-who hidden">— ${escHtml(a.sourceName)}</div>
             </div>
           </div>`).join('')}`;
-      wrap.appendChild(block);
+      wrap.appendChild(card);
     });
   }
 
