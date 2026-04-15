@@ -605,54 +605,43 @@ const firebaseConfig = {
     const n = members.length;
     const rng = makeRng(roomCode);
 
-    // How many answers from one person is too many?
-    // Scales up gracefully when there are few members or many questions.
-    const maxFromOne = Math.max(2, Math.ceil(QUESTIONS.length / Math.max(n - 1, 1)));
-
-    // Build flat pool of all answers
-    const pool = [];
-    members.forEach((member, mi) => {
-      QUESTIONS.forEach((q, qi) => {
-        const text = member.answers && member.answers[`q${qi}`];
-        if (text) pool.push({ sourceMi: mi, sourceName: member.name, q, text });
-      });
+    // For each question, build a seeded-random permutation of member indices.
+    // assignment[qi][pi] = which member's answer person pi reads for question qi.
+    const assignment = QUESTIONS.map(() => {
+      const perm = Array.from({ length: n }, (_, i) => i);
+      for (let i = n - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [perm[i], perm[j]] = [perm[j], perm[i]];
+      }
+      return perm;
     });
 
-    // Fisher-Yates shuffle using seeded rng
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-
-    const target = Math.floor(pool.length / n);
-    const remainder = pool.length % n;
-    const assignments = Array.from({ length: n }, () => []);
-    // sourceCount[recipient][source] tracks how many answers ri got from mi
-    const sourceCount = Array.from({ length: n }, () => Array(n).fill(0));
-
-    function tryAssign(answer, relaxed) {
-      const cap = (ri) => target + (ri < remainder ? 1 : 0);
-      let best = -1;
-      for (let ri = 0; ri < n; ri++) {
-        if (ri === answer.sourceMi) continue;                              // never own answers
-        if (!relaxed && assignments[ri].length >= cap(ri)) continue;      // at capacity
-        if (!relaxed && sourceCount[ri][answer.sourceMi] >= maxFromOne) continue; // too many from one source
-        if (best === -1 || assignments[ri].length < assignments[best].length) best = ri;
+    // Fix self-assignments: swap with the next person who won't cause a self-assignment.
+    QUESTIONS.forEach((_, qi) => {
+      for (let pi = 0; pi < n; pi++) {
+        if (assignment[qi][pi] === pi) {
+          for (let pj = (pi + 1) % n; pj !== pi; pj = (pj + 1) % n) {
+            if (assignment[qi][pj] !== pi) {
+              [assignment[qi][pi], assignment[qi][pj]] = [assignment[qi][pj], assignment[qi][pi]];
+              break;
+            }
+          }
+        }
       }
-      if (best === -1) return false;
-      assignments[best].push(answer);
-      sourceCount[best][answer.sourceMi]++;
-      return true;
-    }
+    });
 
-    const leftover = [];
-    for (const answer of pool) {
-      if (!tryAssign(answer, false)) leftover.push(answer);
-    }
-    // Relaxed pass — drop soft constraint for anything that couldn't be placed
-    for (const answer of leftover) tryAssign(answer, true);
-
-    return members.map((member, i) => ({ recipient: member, answers: assignments[i] }));
+    // Each person gets all questions in order, sourced from whoever the permutation assigned.
+    return members.map((member, pi) => ({
+      recipient: member,
+      answers: QUESTIONS.map((q, qi) => {
+        const src = members[assignment[qi][pi]];
+        return {
+          q,
+          text: (src.answers && src.answers[`q${qi}`]) || '',
+          sourceName: src.name,
+        };
+      }),
+    }));
   }
 
   function buildSummary(members) {
